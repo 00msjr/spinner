@@ -22,17 +22,18 @@ RESET="\033[0m"
 usage() {
   echo -e "${BOLD}Usage:${RESET} $0 [options]"
   echo
-  echo -e "${BOLD}Example usage:${RESET} $0 -s dots"
+  echo -e "${BOLD}Example usage:${RESET} $0 -s dots -c green -m 'Loading files...'"
   echo
   echo -e "${BOLD}Options:${RESET}"
   echo -e "  ${COLORS[cyan]}-s, --spinner NAME${RESET}      Use spinner from $SPINNERS_FILE (default: ${COLORS[green]}$DEFAULT_SPINNER${RESET}${COLORS[cyan]})"
   echo -e "  ${COLORS[cyan]}-i, --interval N${RESET}        Set speed 0=slow, 1=default, 2=fast (default: 1)"
   echo -e "  ${COLORS[cyan]}-l, --list${RESET}              List available spinners"
-  echo -e "  ${COLORS[cyan]}-c, --color COLOR${RESET}       Spinner color (red, green, yellow, blue, magenta, cyan, white)"
+  echo -e "  ${COLORS[cyan]}-c, --color COLOR${RESET}       Spinner & message color (red, green, yellow, blue, magenta, cyan, white)"
   echo -e "  ${COLORS[cyan]}-d, --duration SECONDS${RESET}  Run spinner for fixed seconds and stop"
+  echo -e "  ${COLORS[cyan]}-m, --message TEXT${RESET}      Show a message next to spinner"
   echo -e "  ${COLORS[cyan]}-h, --help${RESET}              Show this help message"
   echo
-  echo -e "${BOLD}Usage with pipe:${RESET} ./myscript.py | $0 --spinner dots"
+  echo -e "${BOLD}Usage with pipe:${RESET} ./myscript.py | $0 --spinner dots -m 'Processing...'"
   exit 0
 }
 
@@ -58,6 +59,7 @@ run_spinner() {
   local spinner="$1"
   local interval="$2"
   local color="$3"
+  local message="$4"
   frames=($(jq -r --arg s "$spinner" '.[$s].frames[]' "$SPINNERS_FILE"))
   if [ -z "$frames" ]; then
     echo -e "${COLORS[red]}Spinner '$spinner' not found${RESET}"
@@ -69,7 +71,7 @@ run_spinner() {
 
   local i=0
   while true; do
-    printf "\r${color}${frames[i]}  ${RESET}"
+    printf "\r${color}${frames[i]} ${message}${RESET}"
     sleep "$interval"
     ((i = (i + 1) % ${#frames[@]}))
   done
@@ -80,10 +82,13 @@ spinner="$DEFAULT_SPINNER"
 interval="$DEFAULT_INTERVAL"
 color="${COLORS[$DEFAULT_COLOR]}"
 duration=""
+message=""
 
 # --- parse args ---
 if [[ $# -eq 0 ]]; then
-  usage
+  # default: run spinner indefinitely
+  run_spinner "$spinner" "$(convert_interval "$interval")" "$color" "$message"
+  exit 0
 fi
 
 while [[ $# -gt 0 ]]; do
@@ -106,6 +111,10 @@ while [[ $# -gt 0 ]]; do
     duration="$2"
     shift 2
     ;;
+  -m | --message)
+    message="$2"
+    shift 2
+    ;;
   *)
     echo -e "${COLORS[red]}Unknown option: $1${RESET}"
     usage
@@ -116,7 +125,7 @@ done
 interval=$(convert_interval "$interval")
 
 # --- run spinner ---
-run_spinner "$spinner" "$interval" "$color" &
+run_spinner "$spinner" "$interval" "$color" "$message" &
 spinner_pid=$!
 
 # --- handle duration or pipe ---
@@ -134,4 +143,3 @@ fi
 
 # Restore cursor and finish line
 tput cnorm
-echo -e "\r${COLORS[green]}Done!${RESET}      "
