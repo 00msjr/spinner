@@ -1,6 +1,6 @@
-# Spinner
-
 <div align="center">
+
+# Spinner
 
 ***A simple, configurable, multi-platform terminal spinner.***
 
