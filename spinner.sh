@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEFAULT_SPINNER="aesthetic"
+DEFAULT_SPINNER="dots"
 DEFAULT_INTERVAL=1 # user-friendly default (mapped to 0.1s)
 DEFAULT_COLOR="white"
 
