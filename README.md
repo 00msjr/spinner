@@ -12,8 +12,7 @@
 
 [Installation](#installation) • [Examples](#example-usage) • [Configuration](#configuring)
 
-![spinner_demo](https://raw.githubusercontent.com/00msjr/spinner/main/demo.gif)
-
+![spinner_demo](https://github.com/00msjr/spinner/blob/master/demo.gif)
 </div>
 
 ## About
