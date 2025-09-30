@@ -1,7 +1,7 @@
 #!/bin/bash
 
 SPINNERS_FILE="spinners.json"
-DEFAULT_SPINNER="dots"
+DEFAULT_SPINNER="aesthetic"
 DEFAULT_INTERVAL=1 # user-friendly default (mapped to 0.1s)
 DEFAULT_COLOR="white"
 
@@ -22,13 +22,17 @@ RESET="\033[0m"
 usage() {
   echo -e "${BOLD}Usage:${RESET} $0 [options]"
   echo
+  echo -e "${BOLD}Example usage:${RESET} $0 -s dots"
+  echo
   echo -e "${BOLD}Options:${RESET}"
-  echo -e "  -s, --spinner NAME      Use spinner from $SPINNERS_FILE (default: $DEFAULT_SPINNER)"
-  echo -e "  -i, --interval N        Set speed 0=slow, 1=default, 2=fast (default: 1)"
-  echo -e "  -l, --list              List available spinners"
-  echo -e "  -c, --color COLOR       Spinner color (red, green, yellow, blue, magenta, cyan, white)"
-  echo -e "  -d, --duration SECONDS  Run spinner for fixed seconds and stop"
-  echo -e "  -h, --help              Show this help message"
+  echo -e "  ${COLORS[cyan]}-s, --spinner NAME${RESET}      Use spinner from $SPINNERS_FILE (default: ${COLORS[green]}$DEFAULT_SPINNER${RESET}${COLORS[cyan]})"
+  echo -e "  ${COLORS[cyan]}-i, --interval N${RESET}        Set speed 0=slow, 1=default, 2=fast (default: 1)"
+  echo -e "  ${COLORS[cyan]}-l, --list${RESET}              List available spinners"
+  echo -e "  ${COLORS[cyan]}-c, --color COLOR${RESET}       Spinner color (red, green, yellow, blue, magenta, cyan, white)"
+  echo -e "  ${COLORS[cyan]}-d, --duration SECONDS${RESET}  Run spinner for fixed seconds and stop"
+  echo -e "  ${COLORS[cyan]}-h, --help${RESET}              Show this help message"
+  echo
+  echo -e "${BOLD}Usage with pipe:${RESET} ./myscript.py | $0 --spinner dots"
   exit 0
 }
 
@@ -36,7 +40,7 @@ list_spinners() {
   echo -e "${BOLD}Available spinners:${RESET}"
   for name in $(jq -r 'keys[]' "$SPINNERS_FILE"); do
     frames=$(jq -r --arg s "$name" '.[$s].frames[]' "$SPINNERS_FILE" | head -n 5 | tr '\n' ' ')
-    echo -e "  $name  $frames..."
+    echo -e "  ${COLORS[green]}$name${RESET}  $frames..."
   done
   exit 0
 }
@@ -56,11 +60,10 @@ run_spinner() {
   local color="$3"
   frames=($(jq -r --arg s "$spinner" '.[$s].frames[]' "$SPINNERS_FILE"))
   if [ -z "$frames" ]; then
-    echo "Spinner '$spinner' not found"
+    echo -e "${COLORS[red]}Spinner '$spinner' not found${RESET}"
     exit 1
   fi
 
-  # Trap Ctrl+C to restore cursor
   trap "tput cnorm; echo; exit" SIGINT
   tput civis
 
@@ -79,6 +82,10 @@ color="${COLORS[$DEFAULT_COLOR]}"
 duration=""
 
 # --- parse args ---
+if [[ $# -eq 0 ]]; then
+  usage
+fi
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
   -h | --help) usage ;;
@@ -100,7 +107,7 @@ while [[ $# -gt 0 ]]; do
     shift 2
     ;;
   *)
-    echo "Unknown option: $1"
+    echo -e "${COLORS[red]}Unknown option: $1${RESET}"
     usage
     ;;
   esac
@@ -108,16 +115,23 @@ done
 
 interval=$(convert_interval "$interval")
 
-# Run spinner in background
+# --- run spinner ---
 run_spinner "$spinner" "$interval" "$color" &
 spinner_pid=$!
 
-# Handle duration
+# --- handle duration or pipe ---
 if [ -n "$duration" ]; then
   sleep "$duration"
   kill $spinner_pid 2>/dev/null
-  tput cnorm
+elif [ ! -t 0 ]; then
+  # Input is coming from a pipe
+  cat >/dev/null
+  kill $spinner_pid 2>/dev/null
 else
-  # Wait indefinitely, Ctrl+C will handle cleanup
+  # No duration, no pipe → wait indefinitely (Ctrl+C will stop)
   wait $spinner_pid
 fi
+
+# Restore cursor and finish line
+tput cnorm
+echo -e "\r${COLORS[green]}Done!${RESET}      "
