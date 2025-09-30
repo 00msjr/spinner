@@ -38,7 +38,7 @@ Since the script is a single file, installation is quick and simple.
 
 ```sh
 # 1. Download the script and name it 'spinner'
-sudo curl -o /usr/local/bin/spinner https://raw.githubusercontent.com/00msjr/spinner/main/spinner.sh
+sudo curl -o /usr/local/bin/spinner https://raw.githubusercontent.com/00msjr/spinner/refs/heads/master/spinner.sh
 
 # 2. Make it executable
 sudo chmod +x /usr/local/bin/spinner
