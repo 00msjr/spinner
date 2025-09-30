@@ -1,17 +1,14 @@
-# Spinner: Pure Bash Terminal Spinners 🌀
+# Spinner
 
 <div align="center">
 
-<img src="https://i.imgur.com/placeholder.png" width="128"/>
-
-Elegant, Zero-Dependency Terminal Spinners
-***For Your Command Line***
+***A simple, configurable, multi-platform terminal spinner.***
 
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![GitHub version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/yourusername/spinner)
+[![GitHub version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/00msjr/spinner)
 [![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Linux-orange.svg)]()
 [![Built With](https://img.shields.io/badge/Built%20With-Bash-404040.svg)](https://www.gnu.org/software/bash/)
-[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/yourusername/spinner/issues)
+[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/00msjr/spinner/issues)
 
 [Installation](#installation) • [Examples](#example-usage) • [Configuration](#configuring)
 
@@ -42,7 +39,7 @@ Since the script is a single file, installation is quick and simple.
 
 ```sh
 # 1. Download the script and name it 'spinner'
-sudo curl -o /usr/local/bin/spinner https://raw.githubusercontent.com/yourusername/spinner/main/spinner.sh
+sudo curl -o /usr/local/bin/spinner https://raw.githubusercontent.com/00msjr/spinner/main/spinner.sh
 
 # 2. Make it executable
 sudo chmod +x /usr/local/bin/spinner
@@ -55,7 +52,7 @@ sudo chmod +x /usr/local/bin/spinner
 
 ```sh
 # Clone the repository
-git clone https://github.com/yourusername/spinner
+git clone https://github.com/00msjr/spinner
 cd spinner
 
 # Make the script executable
