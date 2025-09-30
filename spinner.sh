@@ -71,7 +71,12 @@ run_spinner() {
 
   local i=0
   while true; do
-    printf "\r${color}${frames[i]} ${message}${RESET}"
+    if [[ -n "$message" ]]; then
+      # message before spinner
+      printf "\r${color}${message} ${frames[i]}${RESET}"
+    else
+      printf "\r${color}${frames[i]}${RESET}"
+    fi
     sleep "$interval"
     ((i = (i + 1) % ${#frames[@]}))
   done
