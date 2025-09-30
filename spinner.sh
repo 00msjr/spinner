@@ -1,9 +1,16 @@
 #!/bin/bash
 
-SPINNERS_FILE="spinners.json"
+SPINNERS_FILE="icons.sh"
 DEFAULT_SPINNER="aesthetic"
 DEFAULT_INTERVAL=1 # user-friendly default (mapped to 0.1s)
 DEFAULT_COLOR="white"
+
+# Source the spinners
+if [ ! -f "$SPINNERS_FILE" ]; then
+  echo "Error: $SPINNERS_FILE not found"
+  exit 1
+fi
+source "$SPINNERS_FILE"
 
 # Colors
 declare -A COLORS=(
@@ -25,7 +32,7 @@ usage() {
   echo -e "${BOLD}Example usage:${RESET} $0 -s dots -c green -m 'Loading files...'"
   echo
   echo -e "${BOLD}Options:${RESET}"
-  echo -e "  ${COLORS[cyan]}-s, --spinner NAME${RESET}      Use spinner from $SPINNERS_FILE (default: ${COLORS[green]}$DEFAULT_SPINNER${RESET}${COLORS[cyan]})"
+  echo -e "  ${COLORS[cyan]}-s, --spinner NAME${RESET}      Use spinner (default: ${COLORS[green]}$DEFAULT_SPINNER${RESET}${COLORS[cyan]})"
   echo -e "  ${COLORS[cyan]}-i, --interval N${RESET}        Set speed 0=slow, 1=default, 2=fast (default: 1)"
   echo -e "  ${COLORS[cyan]}-l, --list${RESET}              List available spinners"
   echo -e "  ${COLORS[cyan]}-c, --color COLOR${RESET}       Spinner & message color (red, green, yellow, blue, magenta, cyan, white)"
@@ -39,9 +46,13 @@ usage() {
 
 list_spinners() {
   echo -e "${BOLD}Available spinners:${RESET}"
-  for name in $(jq -r 'keys[]' "$SPINNERS_FILE"); do
-    frames=$(jq -r --arg s "$name" '.[$s].frames[]' "$SPINNERS_FILE" | head -n 5 | tr '\n' ' ')
-    echo -e "  ${COLORS[green]}$name${RESET}  $frames..."
+  for name in $(list_all_spinners); do
+    local var_name="SPINNER_${name}[@]"
+    local first_frames=(${!var_name})
+    local preview="${first_frames[0]}"
+    [ ${#first_frames[@]} -gt 1 ] && preview="$preview ${first_frames[1]}"
+    [ ${#first_frames[@]} -gt 2 ] && preview="$preview ${first_frames[2]}"
+    echo -e "  ${COLORS[green]}$name${RESET}  $preview..."
   done
   exit 0
 }
@@ -60,8 +71,12 @@ run_spinner() {
   local interval="$2"
   local color="$3"
   local message="$4"
-  frames=($(jq -r --arg s "$spinner" '.[$s].frames[]' "$SPINNERS_FILE"))
-  if [ -z "$frames" ]; then
+
+  # Get frames for the spinner
+  local var_name="SPINNER_${spinner}[@]"
+  frames=(${!var_name})
+
+  if [ ${#frames[@]} -eq 0 ]; then
     echo -e "${COLORS[red]}Spinner '$spinner' not found${RESET}"
     exit 1
   fi
@@ -148,3 +163,4 @@ fi
 
 # Restore cursor and finish line
 tput cnorm
+echo
