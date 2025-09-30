@@ -2,7 +2,7 @@
 
 SPINNERS_FILE="spinners.json"
 DEFAULT_SPINNER="dots"
-DEFAULT_INTERVAL=0.1
+DEFAULT_INTERVAL=1 # user-friendly default (mapped to 0.1s actual)
 
 # Colors
 BOLD="\033[1m"
@@ -17,7 +17,7 @@ usage() {
   echo -e "${BOLD}Options:${RESET}"
   echo -e "  ${CYAN}-s, --spinner NAME${RESET}   Use spinner NAME from $SPINNERS_FILE (default: $DEFAULT_SPINNER)"
   echo -e "  ${CYAN}-l, --list${RESET}           List all available spinners with previews"
-  echo -e "  ${CYAN}-i, --interval SECONDS${RESET}  Set spinner speed (default: $DEFAULT_INTERVAL)"
+  echo -e "  ${CYAN}-i, --interval SECONDS${RESET}  Set spinner speed (0=slowest, 1=default, 2=fastest)"
   echo -e "  ${CYAN}-h, --help${RESET}           Show this help message"
   echo
   echo -e "${YELLOW}Press Ctrl+C to exit the spinner.${RESET}"
@@ -31,6 +31,22 @@ list_spinners() {
     echo -e "  ${GREEN}$name${RESET}  $frames..."
   done
   exit 0
+}
+
+convert_interval() {
+  local user_input="$1"
+
+  # Default if empty or non-numeric
+  if ! [[ $user_input =~ ^[0-9]*\.?[0-9]*$ ]]; then
+    user_input=$DEFAULT_INTERVAL
+  fi
+
+  # Clamp between 0 and 2
+  if (($(echo "$user_input < 0" | awk '{print ($1<0)?1:0}'))); then user_input=0; fi
+  if (($(echo "$user_input > 2" | awk '{print ($1>2)?1:0}'))); then user_input=2; fi
+
+  # Map: sleep = 0.15 - (user_input / 2 * 0.1)
+  awk -v val="$user_input" 'BEGIN { printf "%.3f", 0.15 - (val / 2 * 0.1) }'
 }
 
 run_spinner() {
@@ -48,7 +64,7 @@ run_spinner() {
 
   while true; do
     for f in $frames; do
-      printf "\r$f"
+      printf "\r$f  "
       sleep "$interval"
     done
   done
@@ -76,5 +92,8 @@ while [[ $# -gt 0 ]]; do
     ;;
   esac
 done
+
+# Convert user-friendly interval to actual sleep interval
+interval=$(convert_interval "$interval")
 
 run_spinner "$spinner" "$interval"
